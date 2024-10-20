@@ -20,26 +20,44 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 // CertificateSpec defines the desired state of Certificate
 type CertificateSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// DNSName is the DNS name for which the certificate should be issued
+	DNSName string `json:"dnsName,omitempty"`
 
-	// Foo is an example field of Certificate. Edit certificate_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// Validity the time until the certificate expires
+	Validity string `json:"validity,omitempty"`
+
+	// SecretRef is the reference to the secret where the certificate should be stored
+	SecretRef string `json:"secretRef,omitempty"`
+
+	// ReloadOnChange specifies if the deployment should be reloaded when the secret changes
+	// +optional
+	// +kubebuilder:default=false
+	ReloadOnChange bool `json:"reloadOnChange,omitempty"`
+
+	// PurgeOnDelete specifies if the secret should be deleted when the certificate is deleted
+	// +optional
+	// +kubebuilder:default=false
+	PurgeOnDelete bool `json:"purgeOnDelete,omitempty"`
 }
 
 // CertificateStatus defines the observed state of Certificate
 type CertificateStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// Status is the current status of the certificate
+	Status string `json:"status,omitempty"`
+
+	// Message is a human readable message indicating details about the certificate
+	Message string `json:"message,omitempty"`
+
+	// DeployedNamespace is the namespace where the certificate is deployed
+	DeployedNamespace string `json:"deployedNamespace,omitempty"`
 }
 
-//+kubebuilder:object:root=true
-//+kubebuilder:subresource:status
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
+// +kubebuilder:storageversion
+// +kubebuilder:resource:path=certificates,scope=Namespaced
 
 // Certificate is the Schema for the certificates API
 type Certificate struct {
@@ -50,7 +68,7 @@ type Certificate struct {
 	Status CertificateStatus `json:"status,omitempty"`
 }
 
-//+kubebuilder:object:root=true
+// +kubebuilder:object:root=true
 
 // CertificateList contains a list of Certificate
 type CertificateList struct {
