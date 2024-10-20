@@ -10,4 +10,14 @@ plugins:
   scorecard.sdk.operatorframework.io/v2: {}
 projectName: certificate-manager
 repo: github.com/sheryarbutt/certificate-manager
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: k8c.io
+  group: certs
+  kind: Certificate
+  path: github.com/sheryarbutt/certificate-manager/api/v1
+  version: v1
 version: "3"

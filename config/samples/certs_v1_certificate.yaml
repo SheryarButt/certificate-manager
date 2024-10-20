@@ -1,0 +1,12 @@
+apiVersion: certs.k8c.io/v1
+kind: Certificate
+metadata:
+  labels:
+    app.kubernetes.io/name: certificate
+    app.kubernetes.io/instance: certificate-sample
+    app.kubernetes.io/part-of: certificate-manager
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: certificate-manager
+  name: certificate-sample
+spec:
+  # TODO(user): Add fields here
