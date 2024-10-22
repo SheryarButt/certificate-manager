@@ -30,10 +30,9 @@ func (r *CertificateReconciler) handleCreate(ctx context.Context, req ctrl.Reque
 	}
 
 	// If the secret does not exist, create it
-	if errors.IsNotFound(err) {
+	if errors.IsNotFound(err) || Event == constants.EventUpdate {
 		log.Info("Secret does not exist, creating..")
 		// Generate a self-signed certificate
-		log.Info("Generating self-signed certificate..")
 		cert, key, err := r.GenerateSelfSignedCertificate(ctx, instance)
 		if err != nil {
 			log.Error(err, "Failed to generate self-signed certificate")
@@ -50,7 +49,7 @@ func (r *CertificateReconciler) handleCreate(ctx context.Context, req ctrl.Reque
 
 		// Create the Secret
 		log.Info("Creating Secret")
-		err = r.Create(ctx, secret)
+		err = r.CreateOrUpdateSecret(ctx, secret)
 		if err != nil {
 			log.Error(err, "Failed to create Secret")
 			return 0, err
@@ -58,7 +57,7 @@ func (r *CertificateReconciler) handleCreate(ctx context.Context, req ctrl.Reque
 
 		// Set owner reference on the Secret
 		log.Info("Setting owner reference on Secret")
-		err = controllerutil.SetControllerReference(instance, secret, r.Scheme)
+		err = controllerutil.SetOwnerReference(instance, secret, r.Scheme)
 		if err != nil {
 			log.Error(err, "Failed to set owner reference on Secret")
 			return 0, err
@@ -76,7 +75,7 @@ func (r *CertificateReconciler) handleCreate(ctx context.Context, req ctrl.Reque
 
 		if instance.Spec.ReloadOnChange {
 			// Add Env to deployments that use this secret
-			// This will reload the deployments using this secret
+			// This will reload the deployments that are using this secret
 			if err := r.addENVToDeployments(ctx, req, instance, secret); err != nil {
 				log.Error(err, "Failed to add env to deployments")
 				return 0, err
@@ -100,8 +99,7 @@ func (r *CertificateReconciler) handleCreate(ctx context.Context, req ctrl.Reque
 				log.Info("Certificate is expired, Regenerating..")
 
 				// Set the status to "Rotating"
-				log.Info("Setting status to Rotating")
-				err := r.SetStatus(ctx, instance, "Rotating", "Certificate is expired, Regenerating..", req.Namespace, 0)
+				err := r.SetStatus(ctx, instance, constants.StatusRotating, constants.StatusMessageRotating, req.Namespace, 0)
 				if err != nil {
 					log.Error(err, "Failed to set status")
 					return 0, err
@@ -119,7 +117,7 @@ func (r *CertificateReconciler) handleCreate(ctx context.Context, req ctrl.Reque
 				secret.Data["tls.key"] = key
 
 				// Update the Secret
-				err = r.Update(ctx, secret)
+				err = r.CreateOrUpdateSecret(ctx, secret)
 				if err != nil {
 					log.Error(err, "Failed to update Secret")
 					return 0, err
@@ -136,8 +134,7 @@ func (r *CertificateReconciler) handleCreate(ctx context.Context, req ctrl.Reque
 			} else {
 				log.Info("Certificate is expired but RotateOnExpiry is disabled")
 				// Set the status to "Expired"
-				log.Info("Setting status to Expired")
-				err := r.SetStatus(ctx, instance, "Expired", "Certificate is expired", req.Namespace, 0)
+				err := r.SetStatus(ctx, instance, constants.StatusExpired, constants.StatusMessageExpired, req.Namespace, 0)
 				if err != nil {
 					log.Error(err, "Failed to set status")
 					return 0, err
@@ -145,7 +142,7 @@ func (r *CertificateReconciler) handleCreate(ctx context.Context, req ctrl.Reque
 			}
 		}
 	}
-
+	
 	return r.parseDuration(instance)
 }
 

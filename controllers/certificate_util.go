@@ -7,13 +7,22 @@ import (
 	"strings"
 	"time"
 
-	certsv1 "github.com/sheryarbutt/certificate-manager/api/v1"
+	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	certsv1 "github.com/sheryarbutt/certificate-manager/api/v1"
+	"github.com/sheryarbutt/certificate-manager/pkg/constants"
 )
+
+// Event is a global variable to store the event type
+var Event string
 
 // getDeploymentsWithMountedSecret returns a list of Deployments that have the secret mounted
 func (r *CertificateReconciler) getDeploymentsWithMountedSecret(ctx context.Context, req ctrl.Request, instance *certsv1.Certificate) ([]appsv1.Deployment, error) {
@@ -53,11 +62,22 @@ func (r *CertificateReconciler) addENVToDeployments(ctx context.Context, req ctr
 		// Update the deployment
 		deploymentCopy := deployment.DeepCopy() // Copy the deployment to avoid modifying the original
 		for i, container := range deploymentCopy.Spec.Template.Spec.Containers {
-			deploymentCopy.Spec.Template.Spec.Containers[i].Env = append(container.Env, corev1.EnvVar{
-				// Adding ResourceVersion helps identify if the secret has been updated and the deployment needs to be reloaded
-				Name:  "CERTIFICATE_RESOURCE_VERSION",
-				Value: secret.ResourceVersion,
-			})
+			// 	// Adding ResourceVersion helps identify if the secret has been updated and the deployment needs to be reloaded
+			var found bool
+			for j, env := range container.Env {
+				if env.Name == constants.CertificateENVName {
+					// update the value of the env
+					deploymentCopy.Spec.Template.Spec.Containers[i].Env[j].Value = secret.ResourceVersion
+					found = true
+					break
+				}
+			}
+			if !found {
+				deploymentCopy.Spec.Template.Spec.Containers[i].Env = append(container.Env, corev1.EnvVar{
+					Name:  constants.CertificateENVName,
+					Value: secret.ResourceVersion,
+				})
+			}
 		}
 
 		// Patch the deployment
@@ -89,6 +109,7 @@ func (r *CertificateReconciler) parseDuration(instance *certsv1.Certificate) (ti
 	return time.ParseDuration(validity)
 }
 
+// SetStatus sets the status of the Certificate instance
 func (r *CertificateReconciler) SetStatus(ctx context.Context, instance *certsv1.Certificate, status string, message string, deployedNamespace string, expiryDate time.Duration) error {
 	log := r.Log.WithValues("SetStatus", instance.ObjectMeta.Name)
 	log.Info("Setting status to " + status)
@@ -101,6 +122,55 @@ func (r *CertificateReconciler) SetStatus(ctx context.Context, instance *certsv1
 	if err := r.Status().Patch(ctx, instance, patchBase); err != nil {
 		log.Error(err, "Failed to patch Certificate status")
 		return err
+	}
+
+	return nil
+}
+
+// CreateOrUpdateSecret creates or updates the Secret object
+func (r *CertificateReconciler) CreateOrUpdateSecret(ctx context.Context, secret *corev1.Secret) error {
+
+	// Check if the secret already exists
+	err := r.Get(ctx, client.ObjectKeyFromObject(secret), secret)
+	if err != nil && !errors.IsNotFound(err) {
+		return err
+	}
+
+	// If the secret does not exist, create it
+	if errors.IsNotFound(err) {
+		return r.Create(ctx, secret)
+	}
+
+	// Otherwise, update the secret
+	return r.Update(ctx, secret)
+}
+
+// MapSecretsToCertificates maps the secret names to the Certificate names
+func MapSecretsToCertificates(object client.Object, client client.Client, log logr.Logger) []reconcile.Request {
+	secret := object.(*corev1.Secret)
+
+	// Get all Certificates
+	certificates := &certsv1.CertificateList{}
+	err := client.List(context.Background(), certificates)
+	if err != nil {
+		log.Error(err, "Failed to list Certificates")
+		return nil
+	}
+
+	// Check if the secret is referenced by any Certificates
+	for _, certificate := range certificates.Items {
+		if certificate.Spec.SecretRef.Name == secret.Name {
+			log.Info("Found Certificate referencing secret", "Certificate", certificate.Name)
+			requests := []reconcile.Request{
+				{
+					NamespacedName: types.NamespacedName{
+						Name:      certificate.Name,
+						Namespace: certificate.Namespace,
+					},
+				},
+			}
+			return requests
+		}
 	}
 
 	return nil

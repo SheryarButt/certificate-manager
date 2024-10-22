@@ -12,7 +12,7 @@ import (
 
 func (r *CertificateReconciler) handleDelete(ctx context.Context, req ctrl.Request, instance *certsv1.Certificate) error {
 	log := r.Log.WithValues("certificate", req.NamespacedName)
-	log.Info("Deleting Certificate")
+	log.Info("Deleting assosiated Secret")
 
 	// Check if the certificate exists
 	log.Info("Checking if the Secret exists")
