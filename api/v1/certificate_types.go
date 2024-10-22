@@ -29,7 +29,7 @@ type CertificateSpec struct {
 	Validity string `json:"validity,omitempty"`
 
 	// SecretRef is the reference to the secret where the certificate should be stored
-	SecretRef string `json:"secretRef,omitempty"`
+	SecretRef SecretRef `json:"secretRef,omitempty"`
 
 	// ReloadOnChange specifies if the deployment should be reloaded when the secret changes
 	// +optional
@@ -40,6 +40,17 @@ type CertificateSpec struct {
 	// +optional
 	// +kubebuilder:default=false
 	PurgeOnDelete bool `json:"purgeOnDelete,omitempty"`
+
+	// RotateOnExpiry specifies if the certificate should be rotated when it expires
+	// +optional
+	// +kubebuilder:default=false
+	RotateOnExpiry bool `json:"rotateOnExpiry,omitempty"`
+}
+
+// SecretRef is a reference to a secret
+type SecretRef struct {
+	// Name is the name of the secret
+	Name string `json:"name,omitempty"`
 }
 
 // CertificateStatus defines the observed state of Certificate
@@ -52,6 +63,9 @@ type CertificateStatus struct {
 
 	// DeployedNamespace is the namespace where the certificate is deployed
 	DeployedNamespace string `json:"deployedNamespace,omitempty"`
+
+	// ExpiryDate is the date when the certificate expires
+	ExpiryDate metav1.Time `json:"expiryDate,omitempty"`
 }
 
 // +kubebuilder:object:root=true
