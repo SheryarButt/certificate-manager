@@ -12,10 +12,11 @@ import (
 
 func (r *CertificateReconciler) handleDelete(ctx context.Context, req ctrl.Request, instance *certsv1.Certificate) error {
 	log := r.Log.WithValues("certificate", req.NamespacedName)
-	log.Info("Deleting Certificate: ", instance.ObjectMeta.Name)
+	log.Info("Deleting Certificate")
 
 	// Check if the certificate exists
-	secret := objects.Secret(instance.Spec.SecretRef, instance.Namespace)
+	log.Info("Checking if the Secret exists")
+	secret := objects.Secret(instance.Spec.SecretRef.Name, instance.Namespace)
 	err := r.Get(ctx, client.ObjectKeyFromObject(secret), secret)
 	if err != nil && !errors.IsNotFound(err) {
 		log.Error(err, "Failed to get Secret")
@@ -35,5 +36,6 @@ func (r *CertificateReconciler) handleDelete(ctx context.Context, req ctrl.Reque
 		return err
 	}
 
+	log.Info("Secret deleted successfully")
 	return nil
 }
