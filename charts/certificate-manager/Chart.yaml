@@ -1,0 +1,21 @@
+apiVersion: v2
+type: application
+
+name: certificate-manager
+description: A Helm chart for certificate-manager
+
+sources:
+  - https://github.com/sheryarbutt/certificate-manager
+
+# Helm chart Version
+version: 0.0.1
+# Application version to be deployed
+appVersion: 0.0.2
+
+keywords:
+  - certificate-manager
+
+# Maintainers
+maintainers:
+  - name: Sheryar Butt
+    email: m.sheryarbutt@gmail.com
