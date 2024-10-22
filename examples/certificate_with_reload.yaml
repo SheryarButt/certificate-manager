@@ -1,0 +1,56 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: httpd-deployment
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: httpd
+  template:
+    metadata:
+      labels:
+        app: httpd
+    spec:
+      containers:
+      - name: httpd
+        image: httpd:2.4
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: tls-secret
+          mountPath: /usr/local/apache2/conf/tls
+          readOnly: true
+      volumes:
+      - name: tls-secret
+        secret:
+          secretName: my-certificate-secret
+---
+apiVersion: certs.k8c.io/v1
+kind: Certificate
+metadata:
+  name: my-certificate
+  namespace: default
+spec:
+  # the DNS name for which the certificate should be issued
+  dnsName: example.k8c.io
+  # the time until the certificate expires
+  validity: 2m
+  # a reference to the Secret object in which the certificate is stored
+  secretRef:
+    name: my-certificate-secret
+  # optional: purgeOnDelete will delete the secret when the certificate CR is deleted
+  purgeOnDelete: false
+  # optional: reloadOnChange will reload the deployments using the secret when the certificate is updated
+  reloadOnChange: true
+  # optional: rotateOnExpiry will rotate the certificate before it expires
+  rotateOnExpiry: false
