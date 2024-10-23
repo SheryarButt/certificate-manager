@@ -38,7 +38,7 @@ spec:
 apiVersion: certs.k8c.io/v1
 kind: Certificate
 metadata:
-  name: my-certificate
+  name: my-certificate-reload
   namespace: default
 spec:
   # the DNS name for which the certificate should be issued
@@ -47,7 +47,7 @@ spec:
   validity: 2m
   # a reference to the Secret object in which the certificate is stored
   secretRef:
-    name: my-certificate-secret
+    name: my-certificate-secret-reload
   # optional: purgeOnDelete will delete the secret when the certificate CR is deleted
   purgeOnDelete: false
   # optional: reloadOnChange will reload the deployments using the secret when the certificate is updated

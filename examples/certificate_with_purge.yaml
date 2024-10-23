@@ -1,7 +1,7 @@
 apiVersion: certs.k8c.io/v1
 kind: Certificate
 metadata:
-  name: my-certificate
+  name: my-certificate-purge
   namespace: default
 spec:
   # the DNS name for which the certificate should be issued
@@ -10,7 +10,7 @@ spec:
   validity: 360d
   # a reference to the Secret object in which the certificate is stored
   secretRef:
-    name: my-certificate-secret
+    name: my-certificate-secret-purge
   # optional: purgeOnDelete will delete the secret when the certificate CR is deleted
   purgeOnDelete: true
   # optional: reloadOnChange will reload the deployments using the secret when the certificate is updated
