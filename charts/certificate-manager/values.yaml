@@ -3,7 +3,7 @@ replicaCount: 1
 operator:
   image:
     repository: sheryarbutt/certificate-manager
-    tag: 0.0.2
+    tag: 0.0.4
     pullPolicy: IfNotPresent
   serviceAccount:
     # Annotations to add to the service account
@@ -13,6 +13,8 @@ operator:
     name: "controller-manager"
 
 imagePullSecrets: []
+  # Specify image pull secrets
+  # - name: myregistrykey
 
 podSecurityContext:
   runAsNonRoot: true
@@ -26,9 +28,33 @@ resources:
     memory: 200Mi
 
 annotations: {}
+  # prometheus.io/scrape: "true"
+  # prometheus.io/port: "8080"
+
 
 nodeSelector: {}
+  # kubernetes.io/os: linux
+  # kubernetes.io/arch: amd64
 
 tolerations: []
+  # - key: "node-role.kubernetes.io/master"
+  #   operator: "Exists"
+  #   effect: "NoSchedule"
+
 
 affinity: {}
+  # nodeAffinity:
+  #   requiredDuringSchedulingIgnoredDuringExecution:
+  #     nodeSelectorTerms:
+  #       - matchExpressions:
+  #         - key: kubernetes.io/arch
+  #           operator: In
+  #           values:
+  #             - amd64
+  #             - arm64
+  #             - ppc64le
+  #             - s390x
+  #         - key: kubernetes.io/os
+  #           operator: In
+  #           values:
+  #             - linux

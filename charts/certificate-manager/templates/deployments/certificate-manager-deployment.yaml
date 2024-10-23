@@ -33,18 +33,16 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - args:
-          - --health-probe-bind-address=:8081
-          - --metrics-bind-address=127.0.0.1:8080
           - --leader-elect
           command:
           - /manager
-          env:
-          - name: LEADER_ELECTION_ID
-            value: 693cd1b9.k8c.io
           image: "{{ .Values.operator.image.repository }}:{{ .Values.operator.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.operator.image.pullPolicy }}
           securityContext:
             allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - "ALL"
           name: manager
           livenessProbe:
             httpGet:
