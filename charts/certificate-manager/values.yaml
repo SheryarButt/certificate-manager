@@ -17,15 +17,21 @@ imagePullSecrets: []
   # - name: myregistrykey
 
 podSecurityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - "ALL"
+
+securityContext:
   runAsNonRoot: true
 
 resources:
   limits:
-    cpu: 100m
-    memory: 1Gi
+    cpu: 50m
+    memory: 512Mi
   requests:
-    cpu: 10m
-    memory: 200Mi
+    cpu: 5m
+    memory: 128Mi
 
 annotations: {}
   # prometheus.io/scrape: "true"
