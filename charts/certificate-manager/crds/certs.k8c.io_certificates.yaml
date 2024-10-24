@@ -38,6 +38,7 @@ spec:
               dnsName:
                 description: DNSName is the DNS name for which the certificate should
                   be issued
+                minLength: 1
                 type: string
               purgeOnDelete:
                 default: false
@@ -60,11 +61,20 @@ spec:
                 properties:
                   name:
                     description: Name is the name of the secret
+                    minLength: 1
                     type: string
+                required:
+                - name
                 type: object
               validity:
-                description: Validity the time until the certificate expires
+                description: Validity the time until the certificate expires Valid
+                  time units are "s", "m", "h", "d" (seconds, minutes, hours, days)
+                pattern: ^([0-9]+)(s|m|h|d)$
                 type: string
+            required:
+            - dnsName
+            - secretRef
+            - validity
             type: object
           status:
             description: CertificateStatus defines the observed state of Certificate

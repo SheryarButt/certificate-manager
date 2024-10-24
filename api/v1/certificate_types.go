@@ -23,13 +23,19 @@ import (
 // CertificateSpec defines the desired state of Certificate
 type CertificateSpec struct {
 	// DNSName is the DNS name for which the certificate should be issued
-	DNSName string `json:"dnsName,omitempty"`
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:MinLength=1
+	DNSName string `json:"dnsName"`
 
 	// Validity the time until the certificate expires
-	Validity string `json:"validity,omitempty"`
+	// Valid time units are "s", "m", "h", "d" (seconds, minutes, hours, days)
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:Pattern="^([0-9]+)(s|m|h|d)$"
+	Validity string `json:"validity"`
 
 	// SecretRef is the reference to the secret where the certificate should be stored
-	SecretRef SecretRef `json:"secretRef,omitempty"`
+	// +kubebuilder:validation:Required
+	SecretRef SecretRef `json:"secretRef"`
 
 	// ReloadOnChange specifies if the deployment should be reloaded when the secret changes
 	// +optional
@@ -50,7 +56,9 @@ type CertificateSpec struct {
 // SecretRef is a reference to a secret
 type SecretRef struct {
 	// Name is the name of the secret
-	Name string `json:"name,omitempty"`
+	// +kubebuilder:validation:MinLength=1
+	// +kubebuilder:validation:Required
+	Name string `json:"name"`
 }
 
 // CertificateStatus defines the observed state of Certificate
