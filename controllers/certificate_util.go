@@ -48,8 +48,8 @@ func (r *CertificateReconciler) getDeploymentsWithMountedSecret(ctx context.Cont
 	return deploymentsWithMountedSecret, nil
 }
 
-// addENVToDeployments adds an ENV to all deployments that use the secret and updates the deployment
-func (r *CertificateReconciler) addENVToDeployments(ctx context.Context, req ctrl.Request, instance *certsv1.Certificate, secret *corev1.Secret) error {
+// addEnvToDeployments adds an ENV to all deployments that use the secret and updates the deployment
+func (r *CertificateReconciler) addEnvToDeployments(ctx context.Context, req ctrl.Request, instance *certsv1.Certificate, secret *corev1.Secret) error {
 	log := r.Log.WithValues("addENVToDeployments", instance.ObjectMeta.Name)
 	log.Info("ReloadOnChange is enabled, adding ENV to deployments")
 
@@ -90,8 +90,7 @@ func (r *CertificateReconciler) addENVToDeployments(ctx context.Context, req ctr
 }
 
 // ParseDuration parses the validity duration from the Certificate spec
-func (r *CertificateReconciler) parseDuration(instance *certsv1.Certificate) (time.Duration, error) {
-	validity := instance.Spec.Validity
+func parseDuration(validity string) (time.Duration, error) {
 	// Check if the input ends with 'd' (for days)
 	if strings.HasSuffix(validity, "d") {
 		// Remove the 'd' suffix

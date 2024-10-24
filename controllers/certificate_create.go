@@ -76,7 +76,7 @@ func (r *CertificateReconciler) handleCreate(ctx context.Context, req ctrl.Reque
 		if instance.Spec.ReloadOnChange {
 			// Add Env to deployments that use this secret
 			// This will reload the deployments that are using this secret
-			if err := r.addENVToDeployments(ctx, req, instance, secret); err != nil {
+			if err := r.addEnvToDeployments(ctx, req, instance, secret); err != nil {
 				log.Error(err, "Failed to add env to deployments")
 				return 0, err
 			}
@@ -125,7 +125,7 @@ func (r *CertificateReconciler) handleCreate(ctx context.Context, req ctrl.Reque
 				if instance.Spec.ReloadOnChange {
 					// Add Env to deployments that use this secret
 					// This will reload the deployments using this secret
-					if err := r.addENVToDeployments(ctx, req, instance, secret); err != nil {
+					if err := r.addEnvToDeployments(ctx, req, instance, secret); err != nil {
 						log.Error(err, "Failed to add env to deployments")
 						return 0, err
 					}
@@ -141,7 +141,7 @@ func (r *CertificateReconciler) handleCreate(ctx context.Context, req ctrl.Reque
 			}
 		}
 	}
-	return r.parseDuration(instance)
+	return parseDuration(instance.Spec.Validity)
 }
 
 // generateCertificate generates a self-signed certificate for the given DNS name
@@ -149,7 +149,7 @@ func (r *CertificateReconciler) GenerateSelfSignedCertificate(ctx context.Contex
 	log := r.Log.WithValues("GenerateSelfSignedCertificate", "generating self-signed certificate")
 	log.Info("Generating self-signed certificate..")
 
-	validity, err := r.parseDuration(instance)
+	validity, err := parseDuration(instance.Spec.Validity)
 	if err != nil {
 		log.Error(err, "Error while parsing validity")
 		return nil, nil, err
