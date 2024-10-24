@@ -7,7 +7,7 @@ const (
 
 	// Finalizer
 	Finalizer = "certs.k8c.io/certificate"
-	
+
 	// Certificate status
 	StatusReconciling = "Reconciling"
 	StatusRotating    = "Rotating"
