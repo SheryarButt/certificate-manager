@@ -2,14 +2,29 @@
 
 Certificate-Manager is a Kubernetes controller that manages the lifecycle of certificates. It is built using Kubebuilder and the Operator SDK.
 
+## Table of Contents
+
+- [Description](#description)
+- [Features](#features)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Setting up K3D Cluster (Optional)](#setting-up-k3d-cluster-optional)
+  - [Running the Controller Locally](#running-the-controller-locally)
+    - [Uninstalling the Controller](#uninstalling-the-controller)
+  - [Running on the Cluster via Helm](#running-on-the-cluster-via-helm)
+    - [Uninstalling the Helm Chart](#uninstalling-the-helm-chart)
+- [How it Works](#how-it-works)
+- [Custom Resource Definition](#custom-resource-definition)
+- [Uninstalling the Helm Chart](#uninstalling-the-helm-chart)
+
 ## Description
 
-Certificate-Manager is a Kubernetes controller that watches for 'Certificate' custom resource, and creates a self-signed certificate based on the information provided in the custom resource spec. The controller then creates a secret with the certificate and key according to the name provided in the custom resource spec.
+Certificate-Manager is a Kubernetes controller that watches for `Certificate` custom resources and creates a self-signed certificate based on the information provided in the custom resource spec. The controller then creates a secret with the certificate and key according to the name provided in the custom resource spec.
 
-The controller has the following features:
+## Features
 
 - Create a self-signed certificate
-- Create a secret with the certificate and key
+- Create a secret with the generated certificate and key
 - Update the certificate and key in the secret when the certificate is updated
 - Delete the secret when the certificate is deleted (Optional)
 - Reload the deployments using the certificate when the certificate is updated (Optional)
@@ -18,76 +33,121 @@ The controller has the following features:
 ## Getting Started
 
 You’ll need a Kubernetes cluster to run against. You can use [KIND](https://sigs.k8s.io/kind) or [K3D](https://k3d.io) to create a local cluster for testing, or you can use a remote cluster.
-**Note:** Your controller will automatically use the current context in your kubeconfig file (i.e. whatever cluster `kubectl cluster-info` shows).
+
+**Note:** Your controller will automatically use the current context in your kubeconfig file (i.e., whatever cluster `kubectl cluster-info` shows).
+
+### Prerequisites
+
+- Kubernetes cluster (local or remote)
+- [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
+- [Helm](https://helm.sh/docs/intro/install/)
+- [K3D](https://k3d.io) (optional, for local cluster setup)
 
 ### Setting up K3D Cluster (Optional)
 
-1. Install K3D:
+- Install K3D:
 
-```sh
-wget -q -O - https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
-```
+  ```sh
+  wget -q -O - https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+  ```
 
-1. Create a K3D cluster:
+- Create a K3D cluster:
 
-```sh
-k3d cluster create TNC --agents=3 --port=443:443@loadbalancer
-```
+  ```sh
+  k3d cluster create tnc --agents=3 --port=443:443@loadbalancer
+  ```
 
-`TNC` is short for Three Node Cluster. You can name your cluster whatever you want.
-`--agents=3` specifies the number of agents/nodes in the cluster.
-`--port=443:443@loadbalancer` maps the host port 443 to the cluster port 443. This way you can access the cluster using `https://localhost`.
+Here, `tnc` is short for Three Node Cluster. You can name your cluster whatever you want. `--agents=3` specifies the number of agents/nodes in the cluster. `--port=443:443@loadbalancer` maps the host port 443 to the cluster port 443. This way you can access the cluster using `https://localhost`.
 
-### Running on the cluster
+### Running the Controller Locally
 
-1. Create a namespace for the controller:
+>**Note**: The following steps assume you have a Kubernetes cluster running and `kubectl` configured to use it.
 
-```sh
-kubectl create namespace certificate-manager
-```
+- Install the controller:
 
-1. Install the helm chart:
+  ```sh
+  make install
+  ```
 
-```sh
-helm install certificate-manager ./charts/certificate-manager --namespace certificate-manager
-```
+- Run the controller:
 
-1. Create a Certificate custom resource:
+  ```sh
+  make run
+  ```
 
-```sh
-kubectl apply -f examples/certificate.yaml
-```
+- Create a Certificate custom resource:
 
-1. Check the secret created by the controller:
+  ```sh
+  kubectl apply -f config/samples/certificate_v1_certificate.yaml
+  ```
 
-```sh
-kubectl get secret  my-certificate-secret -o jsonpath='{.data.tls\.crt}' | base64 -d
-```
+- Check the secret created by the controller:
 
-### Uninstall the helm chart
+  ```sh
+  kubectl get secret my-certificate-secret -o jsonpath='{.data.tls\.crt}' | base64 -d
+  ```
 
-```sh
-helm uninstall certificate-manager --namespace certificate-manager
-```
+#### Uninstalling the Controller
 
-### How it works
+- To uninstall the controller, run:
 
-This project aims to follow the Kubernetes [Operator pattern](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/).
+  ```sh
+  make uninstall
+  ```
 
-It uses [Controllers](https://kubernetes.io/docs/concepts/architecture/controller/),
-which provide a reconcile function responsible for synchronizing resources until the desired state is reached on the cluster.
+### Running on the Cluster via Helm
 
-The controller watches for changes to the `Certificate` custom resource and takes the following actions:
+>**Note**: The following steps assume you have a Kubernetes cluster running and `kubectl` configured to use it.
 
-1. When a `Certificate` resource is created, the controller creates a self-signed certificate and stores it in a secret.
-1. When a `Certificate` resource is updated, the controller updates the certificate in the secret.
-1. When a `Certificate` resource is deleted, the controller deletes the secret if the optional `PurgeOnDelete` field is set to `true`. Otherwise, the secret is left intact.
-1. When a `Certificate` resource is updated, the controller reloads the deployments using the certificate if the optional `ReloadOnChange` field is set to `true`.
-1. When a `Certificate` resource is expired, the controller rotates the certificate if the optional `RotateOnExpiry` field is set to `true`.
+- Create a namespace for the controller:
 
-### Custom Resource Definition
+  ```sh
+  kubectl create namespace certificate-manager
+  ```
 
-The `Certificate` custom resource definition is defined in the `api/v1` directory.
+- Install the Helm chart:
+
+  ```sh
+  helm install certificate-manager helm/certificate-manager --namespace certificate-manager
+  ```
+
+- Create a Certificate custom resource:
+
+  ```sh
+  kubectl apply -f examples/certificate.yaml
+  ```
+
+- Check the secret created by the controller:
+
+  ```sh
+  kubectl get secret my-certificate-secret -o jsonpath='{.data.tls\.crt}' | base64 -d
+  ```
+
+#### Uninstalling the Helm Chart
+
+- To uninstall the Helm chart, run:
+
+  ```sh
+  helm uninstall certificate-manager --namespace certificate-manager
+  ```
+
+## How it Works
+
+This project aims to follow the Kubernetes Operator pattern.
+
+It uses Controllers, which provide a reconcile function responsible for synchronizing resources until the desired state is reached on the cluster.
+
+The controller watches for changes to the Certificate custom resource and takes the following actions:
+
+1. When a Certificate resource is created, the controller creates a self-signed certificate and stores it in a secret.
+1. When a Certificate resource is updated, the controller updates the certificate in the secret.
+1. When a Certificate resource is deleted, the controller deletes the secret if the optional PurgeOnDelete field is set to true. Otherwise, the secret is left intact.
+1. When a Certificate resource is updated, the controller reloads the deployments using the certificate if the optional ReloadOnChange field is set to true.
+1. When a Certificate resource is expired, the controller rotates the certificate if the optional RotateOnExpiry field is set to true.
+
+## Custom Resource Definition
+
+The Certificate custom resource definition is defined in the `api/v1` directory.
 
 ```yaml
 apiVersion: certs.k8c.io/v1
