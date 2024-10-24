@@ -92,7 +92,7 @@ func main() {
 	if err = (&controllers.CertificateReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
-		Log:    ctrl.Log.WithName("controllers").WithName("Namespace"),
+		Log:    ctrl.Log.WithName("controllers").WithName("Certificate"),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Certificate")
 		os.Exit(1)

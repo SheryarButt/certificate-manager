@@ -90,7 +90,6 @@ func (r *CertificateReconciler) handleCreate(ctx context.Context, req ctrl.Reque
 			return 0, nil
 		}
 
-		log.Info("Checking if certificate is expired")
 		if expired, err := cert.IsCertificateExpired(tlsCert); err != nil {
 			log.Error(err, "Failed to check if certificate is expired")
 			return 0, err
@@ -142,7 +141,6 @@ func (r *CertificateReconciler) handleCreate(ctx context.Context, req ctrl.Reque
 			}
 		}
 	}
-	
 	return r.parseDuration(instance)
 }
 
