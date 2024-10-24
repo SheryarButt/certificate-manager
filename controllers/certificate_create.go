@@ -13,6 +13,7 @@ import (
 	certsv1 "github.com/sheryarbutt/certificate-manager/api/v1"
 	"github.com/sheryarbutt/certificate-manager/pkg/constants"
 	"github.com/sheryarbutt/certificate-manager/pkg/objects"
+	"github.com/sheryarbutt/certificate-manager/pkg/utils"
 	"github.com/sheryarbutt/certificate-manager/pkg/utils/cert"
 )
 
@@ -141,7 +142,7 @@ func (r *CertificateReconciler) handleCreate(ctx context.Context, req ctrl.Reque
 			}
 		}
 	}
-	return parseDuration(instance.Spec.Validity)
+	return utils.ParseDuration(instance.Spec.Validity)
 }
 
 // generateCertificate generates a self-signed certificate for the given DNS name
@@ -149,7 +150,7 @@ func (r *CertificateReconciler) GenerateSelfSignedCertificate(ctx context.Contex
 	log := r.Log.WithValues("GenerateSelfSignedCertificate", "generating self-signed certificate")
 	log.Info("Generating self-signed certificate..")
 
-	validity, err := parseDuration(instance.Spec.Validity)
+	validity, err := utils.ParseDuration(instance.Spec.Validity)
 	if err != nil {
 		log.Error(err, "Error while parsing validity")
 		return nil, nil, err
