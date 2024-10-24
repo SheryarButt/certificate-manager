@@ -34,7 +34,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
-
+	
 	certsv1 "github.com/sheryarbutt/certificate-manager/api/v1"
 	"github.com/sheryarbutt/certificate-manager/pkg/constants"
 	"github.com/sheryarbutt/certificate-manager/pkg/utils/k8s"
@@ -160,11 +160,10 @@ func (r *CertificateReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&certsv1.Certificate{}).
+		For(&certsv1.Certificate{}, builder.WithPredicates(eventPredicate)).
 		Watches(&source.Kind{Type: &corev1.Secret{}}, handler.EnqueueRequestsFromMapFunc(func(object client.Object) []reconcile.Request {
 			return MapSecretsToCertificates(object, r.Client, r.Log)
 		}), builder.WithPredicates(predicate.Or(predicate.GenerationChangedPredicate{}, predicate.LabelChangedPredicate{}))).
-		WithEventFilter(eventPredicate).
 		WithEventFilter(predicate.GenerationChangedPredicate{}).
 		Owns(&corev1.Secret{}).
 		Complete(r)
