@@ -16,6 +16,7 @@ Certificate-Manager is a Kubernetes controller that manages the lifecycle of cer
 - [How it Works](#how-it-works)
 - [Custom Resource Definition](#custom-resource-definition)
 - [Uninstalling the Helm Chart](#uninstalling-the-helm-chart)
+- [ASCIINEMA Demo](#asciinema-demo)
 
 ## Description
 
@@ -170,3 +171,7 @@ spec:
   # optional: rotateOnExpiry will rotate the certificate before it expires
   rotateOnExpiry: false
 ```
+
+## ASCIINEMA Demo
+
+[![asciicast](https://asciinema.org/a/Tm4PiGFtchccYur7rkR3h6Sjv.svg)](https://asciinema.org/a/Tm4PiGFtchccYur7rkR3h6Sjv)
