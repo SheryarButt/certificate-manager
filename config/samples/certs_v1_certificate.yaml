@@ -9,4 +9,10 @@ metadata:
     app.kubernetes.io/created-by: certificate-manager
   name: certificate-sample
 spec:
-  # TODO(user): Add fields here
+  dnsName: example.k8c.io
+  validity: 360d
+  secretRef:
+    name: my-certificate-secret
+  purgeOnDelete: false
+  reloadOnChange: false
+  rotateOnExpiry: false
